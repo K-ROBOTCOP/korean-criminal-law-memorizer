@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useParams, useLocation } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { Book, Layers, GraduationCap, ChevronRight, Search, Shuffle, FileText } from 'lucide-react';
 import criminalActData from './criminal_act.json';
 
