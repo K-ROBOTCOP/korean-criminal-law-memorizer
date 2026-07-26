@@ -150,26 +150,29 @@ function Phase1() {
 function Phase2() {
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [answers, setAnswers] = useState({});
+  const [showAnswers, setShowAnswers] = useState(false);
 
   const handleArticleClick = (article) => {
     setSelectedArticle(article);
     setAnswers({});
+    setShowAnswers(false);
   };
 
-  const renderBlankText = (text) => {
+  const renderBlankText = (text, paraIdx = 0) => {
     if (!text) return null;
     const parts = text.split(/(\d+년|\d+만원|\d+천만원|사형|무기)/g);
     
     return parts.map((part, i) => {
       if (/(년|만원|천만원|사형|무기)/.test(part) && part.length > 0) {
-        const isCorrect = answers[i] === part;
-        const isAttempted = answers[i] !== undefined && answers[i] !== '';
+        const answerKey = `${paraIdx}-${i}`;
+        const isCorrect = answers[answerKey] === part;
+        const isAttempted = answers[answerKey] !== undefined && answers[answerKey] !== '';
         return (
           <input
             key={i}
             className={`blank-input ${isCorrect ? 'correct' : (isAttempted ? 'incorrect' : '')}`}
-            value={answers[i] || ''}
-            onChange={(e) => setAnswers({...answers, [i]: e.target.value})}
+            value={answers[answerKey] || ''}
+            onChange={(e) => setAnswers({...answers, [answerKey]: e.target.value})}
             placeholder="?"
             style={{ width: `${Math.max(4, part.length)}ch` }}
           />
@@ -178,6 +181,17 @@ function Phase2() {
       return <span key={i}>{part}</span>;
     });
   };
+
+  const getAnswersList = () => {
+    if (!selectedArticle) return [];
+    let text = selectedArticle.content || '';
+    if (selectedArticle.paragraphs && selectedArticle.paragraphs.length > 0) {
+      text = selectedArticle.paragraphs.join(' ');
+    }
+    const parts = text.split(/(\d+년|\d+만원|\d+천만원|사형|무기)/g);
+    return parts.filter(part => /(년|만원|천만원|사형|무기)/.test(part) && part.length > 0);
+  };
+  const correctAnswersList = getAnswersList();
 
   return (
     <div className="container">
@@ -205,13 +219,35 @@ function Phase2() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   {selectedArticle.paragraphs.map((para, idx) => (
                     <div key={idx} className="article-content">
-                      {renderBlankText(para)}
+                      {renderBlankText(para, idx)}
                     </div>
                   ))}
                 </div>
               ) : (
                 <div className="article-content">
-                  {renderBlankText(selectedArticle.content)}
+                  {renderBlankText(selectedArticle.content, 0)}
+                </div>
+              )}
+              
+              {correctAnswersList.length > 0 && (
+                <div style={{ marginTop: '32px', borderTop: '1px solid var(--surface-border)', paddingTop: '16px' }}>
+                  <button 
+                    className="btn btn-secondary" 
+                    onClick={() => setShowAnswers(!showAnswers)}
+                    style={{ marginBottom: '12px' }}
+                  >
+                    {showAnswers ? '정답 숨기기' : '정답 보기'}
+                  </button>
+                  
+                  {showAnswers && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                      {correctAnswersList.map((ans, idx) => (
+                        <span key={idx} style={{ background: 'rgba(16, 185, 129, 0.2)', color: 'var(--success-color)', padding: '4px 12px', borderRadius: '16px', fontSize: '0.9rem', fontWeight: '500' }}>
+                          {ans}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
